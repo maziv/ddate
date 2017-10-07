@@ -20,6 +20,8 @@
                "Bureaucracy" {5 "Zaraday" 50 "Bureflux"},
                "The Aftermath" {5 "Maladay" 50 "Afflux"}})
 
+(def defaultDateFormat "Today is %A, the %e day of %B% in the YOLD %Y %H")
+
 (defn in? [x coll]
     "Return true if x is in coll, else false. "
     (some #(= x %) coll))
@@ -88,7 +90,8 @@
   ([date]
   (dWeekday date :l))
   ([date size]
-   (get (nth days  (- (rem (dayOfYOLD date) 5)1) ) size)))
+   (let [dow (rem (dayOfYOLD date) 5)]
+   (get (nth days (if (> dow 0) (- dow 1) 4) ) size))))
 
 (def options (list 
                {:pattern "%A" :value #(dWeekday % :l)}
@@ -101,4 +104,8 @@
                {:pattern "%Y" :value #(str (YOLD %))}
                ))
 
+(defn sipar 
+  "simple parser for simple string replacement using options as pattern and replace source"
+  [dateformat date]
+  (reduce (fn [x y] (replacer x y date)) dateformat options))
 
