@@ -20,7 +20,7 @@
                "Bureaucracy" {5 "Zaraday" 50 "Bureflux"},
                "The Aftermath" {5 "Maladay" 50 "Afflux"}})
 
-(def defaultDateFormat "Today is %A, the %e day of %B% in the YOLD %Y %H")
+(def defaultDateFormat "Today is %{%A, the %e day of %B} in the YOLD %Y%N%nCelebrate %H")
 
 (defn in? [x coll]
     "Return true if x is in coll, else false. "
@@ -57,7 +57,7 @@
 (defn stTibs 
   "returns St. Tip's Day if it is St. Tip's Day"
   [date]
-  (if (and (t/leap? date)  (= (t/as date :day-of-year) 59))
+  (if (and (t/leap? date)  (= (t/as date :day-of-year) 60))
     "St. Tip's Day"
     ""))
 
@@ -82,7 +82,7 @@
   [date]
   (let [holiday (get (get holidays (dSeason date)) (dDayOfSeason date))]
    (if holiday 
-     (+ "Celebrate " holiday)
+     holiday
      "")))
 
 (defn dWeekday
@@ -93,6 +93,10 @@
    (let [dow (rem (dayOfYOLD date) 5)]
    (get (nth days (if (> dow 0) (- dow 1) 4) ) size))))
 
+(defn nline
+  [date]
+  (str "\n"))
+
 (def options (list 
                {:pattern "%A" :value #(dWeekday % :l)}
                {:pattern "%a" :value #(dWeekday % :s)}
@@ -102,10 +106,29 @@
                {:pattern "%e" :value #(ordinal (dDayOfSeason %))}
                {:pattern "%H" :value #(dHoliday %)}
                {:pattern "%Y" :value #(str (YOLD %))}
+               {:pattern "%n" :value #(nline %)}
                ))
 
 (defn sipar 
   "simple parser for simple string replacement using options as pattern and replace source"
-  [dateformat date]
-  (reduce (fn [x y] (replacer x y date)) dateformat options))
+  [formatstring date]
+  (reduce (fn [x y] (replacer x y date)) formatstring options))
 
+(defn handle%N 
+  [formatstring date]
+    (if (= (dHoliday date) "") 
+      (clojure.string/replace formatstring #"%N.*" "")   
+      (clojure.string/replace formatstring "%N" "")))
+
+
+(defn handleStTibs
+  [formatstring date]
+  (let [stTibsdate (stTibs date)]
+  (if (= stTibsdate "") 
+        (clojure.string/replace formatstring #"%\{|\}" "")
+        (clojure.string/replace formatstring #"%\{.*\}" stTibsdate))))
+
+(defn gimmeddate 
+  "returns discordian date according to the given formatstring"
+  [formatstring date]
+  (sipar (handle%N (handleStTibs formatstring date) date) date))
