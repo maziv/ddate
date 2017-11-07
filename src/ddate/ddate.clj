@@ -55,10 +55,10 @@
       doy)))
 
 (defn stTibs 
-  "returns St. Tip's Day if it is St. Tip's Day"
+  "returns St. Tib's Day if it is St. Tip's Day"
   [date]
   (if (and (t/leap? date)  (= (t/as date :day-of-year) 60))
-    "St. Tip's Day"
+    "St. Tib's Day"
     ""))
 
 (defn YOLD
